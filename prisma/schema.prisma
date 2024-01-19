@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+model listings {
+  listing_id      Int            @id @default(autoincrement())
+  name            String         @db.VarChar(255)
+  host_id         Int
+  dates_available DateTime[]     @db.Date
+  price           Decimal        @db.Decimal
+  description     String         @db.VarChar(255)
+  amenities       amenity[]
+  space_type      spacetype
+  address         String         @db.VarChar(255)
+  city            String         @db.VarChar(255)
+  zip_code        String         @db.VarChar(255)
+  state           String         @db.VarChar(255)
+  editable        Boolean
+  created_on      DateTime       @db.Date
+  space_available Int[]
+  host            users          @relation(fields: [host_id], references: [user_id], onDelete: Cascade)
+  longitude       Decimal        @db.Decimal
+  latitude        Decimal        @db.Decimal
+  reservations    reservations[]
+  stripe_id       String
+}
+
+model reservations {
+  reservation_id  Int        @id @default(autoincrement())
+  host_id         Int        
+  stasher_id      Int        
+  listing_id      Int        
+  reserved_on     DateTime   @default(now())
+  dates_requested DateTime[] @db.Date
+  host            users      @relation("host_reservations", fields: [host_id], references: [user_id])
+  stasher         users      @relation("stash_reservations", fields: [stasher_id], references: [user_id])
+  listing         listings   @relation(fields: [listing_id], references: [listing_id])
+  cancelled       Boolean?   @default(false)
+  cancelled_on    DateTime?  @default(now())
+  stripe_id       String
+}
+
+model users {
+  user_id               Int            @id @default(autoincrement())
+  name                  String         @db.VarChar(255)
+  email                 String         @unique @db.VarChar(255)
+  drivers_license_photo String         @db.VarChar(255)
+  verified              Boolean
+  verified_on           DateTime?      @db.Date
+  listings              listings[]
+  host_reservations     reservations[] @relation("host_reservations")
+  stash_reservations    reservations[] @relation("stash_reservations")
+  is_admin              Boolean        @default(false)
+}
+
+enum amenity {
+  Pest_Controlled    @map("Pest Controlled")
+  Fire_Alarm_System  @map("Fire Alarm System")
+  Smoke_Free         @map("Smoke Free")
+  Pet_Free           @map("Pet Free")
+  Access_to_Elevator @map("Access to Elevator")
+  Ground_Floor       @map("Ground Floor")
+  Climate_Controlled @map("Climate Controlled")
+  Private_Storage    @map("Private Storage")
+  Party_Free         @map("Party Free")
+}
+
+enum spacetype {
+  Basement
+  Closet
+  Common_Living_Space @map("Common Living Space")
+  Bedroom
+  Cabinet
+  Unoccupied_Room     @map("Unoccupied Room")
+  Other
+}
