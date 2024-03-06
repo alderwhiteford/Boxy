@@ -1,3 +1,5 @@
+NOTICE: I have been granted permission to move this repository to my account for resume display purposes.
+
 to run application
 1. clone repository onto your machine with `git clone https://github.com/GenerateNU/Boxy.git`
 2. run `npm install` at <some path>/Boxy to install dependencies
